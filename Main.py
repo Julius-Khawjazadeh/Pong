@@ -1,4 +1,5 @@
 import pygame
+import random
 
 WIDTH, HEIGHT = 700, 500
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -8,15 +9,27 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 FPS = 60
 
+ballVel = 3
+starting_dir_list = [-ballVel, ballVel]
 
-class Paddle:
+class PongEntity:
     def __init__(self, x, y, width, height):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
 
-    def move(self, yvel):
+    def getRect(self):
+        return pygame.Rect((self.x, self.y), (self.width, self.height))
+
+    def moveY(self, yvel):
+        self.y += yvel
+
+    def moveX(self, xvel):
+        self.x += xvel
+
+    def move(self, xvel, yvel):
+        self.x += xvel
         self.y += yvel
 
     def getX(self):
@@ -28,6 +41,9 @@ class Paddle:
     def setPosY(self, ypos):
         self.y = ypos
 
+    def setPosX(self, xpos):
+        self.x = xpos
+
     def getWidth(self):
         return self.width
 
@@ -37,16 +53,35 @@ class Paddle:
     def draw(self):
         pygame.draw.rect(WIN, WHITE, (self.x, self.y, self.width, self.height))
 
+class Ball (PongEntity):
+    pass
+
+class Paddle (PongEntity):
+    def getPaddleTop(self):
+        return pygame.Rect((self.x, self.y), (self.width, self.height/2))
+
+    def getPaddleBottom(self):
+        return pygame.Rect((self.x, self.y + self.height/2), (self.width, self.height/2))
+    
+
 P1_SIZE_X, P1_SIZE_Y = 8, 110
+B_SIZE = 10
 
 # Paddles
+
 p1 = Paddle(P1_SIZE_X, HEIGHT/2 - P1_SIZE_Y/2, P1_SIZE_X, P1_SIZE_Y)
 p2 = Paddle((WIDTH - P1_SIZE_X) - P1_SIZE_X, HEIGHT/2 - P1_SIZE_Y/2, P1_SIZE_X, P1_SIZE_Y)
+
+# BALL
+ball_reset_posX = WIDTH/2 - B_SIZE/2
+ball_reset_posY = HEIGHT/2 - B_SIZE/2
+b = Ball(WIDTH/2 - B_SIZE/2, HEIGHT/2 - B_SIZE/2, B_SIZE, B_SIZE)
 
 
 def draw_window():
     p1.draw()
     p2.draw()
+    b.draw()
     pygame.display.update()
 
 def setBoundries(p1, p2):
@@ -59,11 +94,17 @@ def setBoundries(p1, p2):
     elif p2.y < 0:
         p2.setPosY(0)
 
+def reset_ball(b):
+    b.setPosX(ball_reset_posX)
+    b.setPosY(ball_reset_posY)
+    
 
 def main():
     run = True
     paddle_vel = 8
     clock = pygame.time.Clock()
+    dirX = starting_dir_list[random.randrange(0, len(starting_dir_list))] # randomizing whoever gets the ball first
+    dirY = starting_dir_list[random.randrange(0, len(starting_dir_list))] # randomizing whoever gets the ball first
 
     while run:
         clock.tick(FPS)
@@ -75,14 +116,71 @@ def main():
 
         # PADDLE #1
         if keys_pressed[pygame.K_w]:
-            p1.move(-paddle_vel)
+            p1.moveY(-paddle_vel)
         elif keys_pressed[pygame.K_s]:
-            p1.move(paddle_vel)
+            p1.moveY(paddle_vel)
         # PADDLE #2
         if keys_pressed[pygame.K_UP]:
-            p2.move(-paddle_vel)
+            p2.moveY(-paddle_vel)
         elif keys_pressed[pygame.K_DOWN]:
-            p2.move(paddle_vel)
+            p2.moveY(paddle_vel)
+
+        # BALL PHYSICS
+        b.move(dirX, dirY)
+
+        if b.getY() < 0:
+            dirY *= -1
+        elif b.getY() + b.getHeight() > HEIGHT:
+            dirY *= -1
+
+        if p1.getPaddleTop().colliderect(b.getRect()) and dirY > 0:
+            print("TOP going down")
+            dirY *= -1
+            dirX *= -1
+        elif p1.getPaddleTop().colliderect(b.getRect()) and dirY < 0:
+            print("TOP going up")
+           # dirY *= -1
+            dirX *= -1
+        elif p1.getPaddleBottom().colliderect(b.getRect()) and dirY > 0:
+            print("Bottom going down")
+            #dirY *= -1
+            dirX *= -1
+        elif p1.getPaddleBottom().colliderect(b.getRect()) and dirY < 0:
+            print("Bottom going up")
+            dirY *= -1
+            dirX *= -1
+        
+        if p2.getPaddleTop().colliderect(b.getRect()) and dirY > 0:
+            print("TOP going down")
+            dirY *= -1
+            dirX *= -1
+        elif p2.getPaddleTop().colliderect(b.getRect()) and dirY < 0:
+            print("TOP going up")
+           # dirY *= -1
+            dirX *= -1
+        elif p2.getPaddleBottom().colliderect(b.getRect()) and dirY > 0:
+            print("Bottom going down")
+            #dirY *= -1
+            dirX *= -1
+        elif p2.getPaddleBottom().colliderect(b.getRect()) and dirY < 0:
+            print("Bottom going up")
+            dirY *= -1
+            dirX *= -1
+        
+
+        if b.getX() < 0:
+            # player one wins a point
+            reset_ball(b)
+            dirY *= -1
+            dirX *= -1
+        elif b.getX() + b.getWidth() > WIDTH:
+            # player two wins a point
+            reset_ball(b)
+            dirY *= -1
+            dirX *= -1
+
+
+        
 
         setBoundries(p1, p2)        
 
