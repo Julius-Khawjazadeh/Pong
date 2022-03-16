@@ -62,26 +62,50 @@ class Paddle (PongEntity):
 
     def getPaddleBottom(self):
         return pygame.Rect((self.x, self.y + self.height/2), (self.width, self.height/2))
+
+class Divider:
+    def __init__(self, x, width, height):
+        self.block_positions = []
+        self.x = x
+        self.width = width
+        self.height = height
+        self.rect_dist = 5
+
+        for i in range(int(HEIGHT / (self.height + self.rect_dist))):
+            self.y = i * (self.rect_dist + self.height)
+            self.block_positions.append(self.y) 
+       
+
+    def draw(self):
+        for y in self.block_positions:
+          pygame.draw.rect(WIN, WHITE, (self.x, y, self.width, self.height))
     
 
 P1_SIZE_X, P1_SIZE_Y = 8, 110
 B_SIZE = 10
+D_SIZE_X = 4
+D_SIZE_Y = 80
 
 # Paddles
 
 p1 = Paddle(P1_SIZE_X, HEIGHT/2 - P1_SIZE_Y/2, P1_SIZE_X, P1_SIZE_Y)
 p2 = Paddle((WIDTH - P1_SIZE_X) - P1_SIZE_X, HEIGHT/2 - P1_SIZE_Y/2, P1_SIZE_X, P1_SIZE_Y)
 
+DIVIDER_WIDTH, DIVIDER_HEIGHT = 4, 20
+
 # BALL
 ball_reset_posX = WIDTH/2 - B_SIZE/2
 ball_reset_posY = HEIGHT/2 - B_SIZE/2
 b = Ball(WIDTH/2 - B_SIZE/2, HEIGHT/2 - B_SIZE/2, B_SIZE, B_SIZE)
+divider = Divider(WIDTH/2 - DIVIDER_WIDTH/2, DIVIDER_WIDTH, DIVIDER_HEIGHT)
+
 
 
 def draw_window():
     p1.draw()
     p2.draw()
     b.draw()
+    divider.draw()
     pygame.display.update()
 
 def setBoundries(p1, p2):
@@ -139,11 +163,9 @@ def main():
             dirX *= -1
         elif p1.getPaddleTop().colliderect(b.getRect()) and dirY < 0:
             print("TOP going up")
-           # dirY *= -1
             dirX *= -1
         elif p1.getPaddleBottom().colliderect(b.getRect()) and dirY > 0:
             print("Bottom going down")
-            #dirY *= -1
             dirX *= -1
         elif p1.getPaddleBottom().colliderect(b.getRect()) and dirY < 0:
             print("Bottom going up")
@@ -156,11 +178,9 @@ def main():
             dirX *= -1
         elif p2.getPaddleTop().colliderect(b.getRect()) and dirY < 0:
             print("TOP going up")
-           # dirY *= -1
             dirX *= -1
         elif p2.getPaddleBottom().colliderect(b.getRect()) and dirY > 0:
             print("Bottom going down")
-            #dirY *= -1
             dirX *= -1
         elif p2.getPaddleBottom().colliderect(b.getRect()) and dirY < 0:
             print("Bottom going up")
